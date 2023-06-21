@@ -1,8 +1,8 @@
 const express = require('express');
-const { readData } = require('./utils/readAndWriteData') ;
+const { readData } = require('./utils/readAndWriteData');
 
 const app = express();
-//Dentro do app.use(), passamos uma outra função é ela que habilita a possibilidade de recebermos dados pelo corpo (body) de nossa requisição. 
+// Dentro do app.use(), passamos uma outra função é ela que habilita a possibilidade de recebermos dados pelo corpo (body) de nossa requisição. 
 app.use(express.json());
 
 const HTTP_OK_STATUS = 200;
@@ -19,7 +19,7 @@ app.listen(PORT, () => {
 
 app.get('/talker', async (_req, res) => {
   const talkers = await readData();
-  if(talkers) {
+  if (talkers) {
     return res.status(HTTP_OK_STATUS).json(talkers);
   }
   return res.status(HTTP_OK_STATUS).json({ message: [] });
