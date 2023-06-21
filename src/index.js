@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const app = express();
 app.use(express.json());
 
+const route = __dirname + '/talker.json';
 const HTTP_OK_STATUS = 200;
 const HTTP_NOT_FOUND_STATUS = 404;
 const PORT = process.env.PORT || '3001';
@@ -19,14 +20,15 @@ app.listen(PORT, () => {
 });
 
 app.get('/talker', async (req, res) => {
-  const data = await fs.readFile('../src/talker.json', 'utf-8');
+  console.log(__dirname);
+  const data = await fs.readFile(route, 'utf-8');
   const talkers = JSON.parse(data);
   return res.status(HTTP_OK_STATUS).json(talkers);
 });
 
 app.get('/talker/:id', async (req, res) => {
   const { id } = req.params;
-  const data = await fs.readFile('../src/talker.json', 'utf-8');
+  const data = await fs.readFile(route, 'utf-8');
   const talkers = JSON.parse(data);
   const findTalkerById = talkers.find((talker) => Number(talker.id) === Number(id)); 
   if (!findTalkerById) {
