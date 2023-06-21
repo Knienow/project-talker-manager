@@ -1,15 +1,9 @@
-const { readFile } = require('fs').promises;
+const fs = require('fs').promises;
 
 const readData = async () => {
-    try {
-        const data = await readFile('talker.json', 'utf-8');
-        const talkers = JSON.parse(data);
-        return talkers;
-    } catch (error) {
-        const err = new Error('Error');
-        err.statusCode = 500;
-        throw err;
-    }
+    const data = await fs.readFile('./talker.json', 'utf-8');
+    const talkers = JSON.parse(data);
+    return talkers;
 };
 
 module.exports = {
