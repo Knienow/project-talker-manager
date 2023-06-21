@@ -1,11 +1,12 @@
 const express = require('express');
 const fs = require('fs/promises');
 const crypto = require('crypto');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
 
-const route = __dirname + '/talker.json';
+const route = path.join(__dirname, '/talker.json');
 const HTTP_OK_STATUS = 200;
 const HTTP_NOT_FOUND_STATUS = 404;
 const PORT = process.env.PORT || '3001';
@@ -20,7 +21,6 @@ app.listen(PORT, () => {
 });
 
 app.get('/talker', async (req, res) => {
-  console.log(__dirname);
   const data = await fs.readFile(route, 'utf-8');
   const talkers = JSON.parse(data);
   return res.status(HTTP_OK_STATUS).json(talkers);
