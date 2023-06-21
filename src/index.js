@@ -26,19 +26,15 @@ app.get('/talker', async (req, res) => {
 
 app.get('/talker/:id', async (req, res) => {
   const { id } = req.params;
-  const data = JSON.parse( await fs.readFile('/app/src/talker.json', 'utf-8'));
+  const data = JSON.parse(await fs.readFile('/app/src/talker.json', 'utf-8'));
   const findTalkerById = data.find((talker) => Number(talker.id) === Number(id)); 
-  if(!findTalkerById) {
-    res.status(HTTP_NOT_FOUND_STATUS).json({
-      message: 'Pessoa palestrante não encontrada'
-    });
+  if (!findTalkerById) {
+    res.status(HTTP_NOT_FOUND_STATUS).json({ message: 'Pessoa palestrante não encontrada' });
   }
   return res.status(HTTP_OK_STATUS).json(findTalkerById);
 });
 
 app.post('/login', (req, res) => {
   const generateToken = () => crypto.randomBytes(8).toString('hex');
-  return res.status(HTTP_OK_STATUS).json({
-   token: generateToken()
-  })
+  return res.status(HTTP_OK_STATUS).json({ token: generateToken() });
 });
