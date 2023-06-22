@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs/promises');
 const crypto = require('crypto');
 const path = require('path');
+const { body, validationResult } = require('express-validator');
 
 const app = express();
 app.use(express.json());
@@ -9,6 +10,7 @@ app.use(express.json());
 const route = path.join(__dirname, '/talker.json');
 const HTTP_OK_STATUS = 200;
 const HTTP_NOT_FOUND_STATUS = 404;
+const HTTP_BAD_REQUEST = 400;
 const PORT = process.env.PORT || '3001';
 
 // não remova esse endpoint, e para o avaliador funcionar
@@ -37,7 +39,25 @@ app.get('/talker/:id', async (req, res) => {
   return res.status(HTTP_OK_STATUS).json(findTalkerById);
 });
 
-app.post('/login', (req, res) => {
+// app.post('/login', (req, res) => {
+//   const generateToken = () => crypto.randomBytes(8).toString('hex');
+//   return res.status(HTTP_OK_STATUS).json({ token: generateToken() });
+// });
+
+// parei na mensagem de erro - acredito que o formato esperado pelo teste não é o mesmo que está sendo utilizado na linha 57
+// verificar se é possível pegar apenas o valor de msg para adaptar ao formato exigido no teste
+
+app.post('/login', [
+  body('email').isEmail().withMessage('O "email" deve ter o formato "email@email.com"'),
+  body('email').notEmpty().withMessage('O campo "email" é obrigatório'),
+  body('password').isLength({ min: 6 })
+  .withMessage('O "password" deve ter pelo menos 6 caracteres'),
+  body('password').notEmpty().withMessage('O campo "password" é obrigatório'),
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(HTTP_BAD_REQUEST).json({ errors: errors.array() });
+  }
   const generateToken = () => crypto.randomBytes(8).toString('hex');
   return res.status(HTTP_OK_STATUS).json({ token: generateToken() });
 });
