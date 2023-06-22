@@ -48,15 +48,16 @@ app.get('/talker/:id', async (req, res) => {
 // verificar se é possível pegar apenas o valor de msg para adaptar ao formato exigido no teste
 
 app.post('/login', [
-  body('email').isEmail().withMessage('O "email" deve ter o formato "email@email.com"'),
   body('email').notEmpty().withMessage('O campo "email" é obrigatório'),
+  body('password').notEmpty().withMessage('O campo "password" é obrigatório'),
+  body('email').isEmail().withMessage('O "email" deve ter o formato "email@email.com"'),
   body('password').isLength({ min: 6 })
   .withMessage('O "password" deve ter pelo menos 6 caracteres'),
-  body('password').notEmpty().withMessage('O campo "password" é obrigatório'),
 ], (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(HTTP_BAD_REQUEST).json({ errors: errors.array() });
+    const message = errors.errors[0].msg;
+    return res.status(HTTP_BAD_REQUEST).json({ message });
   }
   const generateToken = () => crypto.randomBytes(8).toString('hex');
   return res.status(HTTP_OK_STATUS).json({ token: generateToken() });
