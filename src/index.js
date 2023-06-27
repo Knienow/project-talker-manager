@@ -113,10 +113,25 @@ app.post('/talker', validators, async (req, res) => {
 });
 
 // REQUISITO 06 - só rascunho 
- // param('id').notEmpty().withMessage('Pessoa palestrante não encontrada')
-//  
+const findByIndex = async (data) => {
+  const talkers = await talkersList();
+  const index = talkers.findIndex((element) => Number(element.id) === Number(data.id));
+  if (index === -1) {
+    return -1;
+  }
+  talkers[index] = { 
+    id: talkers[index].id,
+    name: data.name,
+    age: data.age,
+    talk: data.watchedAt, 
+    rate: data.rate,
+  };
+  await fs.writeFile(route, JSON.stringify(talkers));
+  return talkers[index];
+};
+
 app.put('/talker/:id', validators, [
-  param('id').notEmpty().withMessage('Pessoa palestrante não encontrada'),
+  param('id').notEmpty(),
 ], async (req, res) => {
   const errors = validationResult(req);
   const { id } = req.params;
@@ -124,22 +139,16 @@ app.put('/talker/:id', validators, [
   if (!errors.isEmpty()) {
     const message = errors.errors[0].msg;
     const { authorization } = req.headers;
-    if (!authorization) {
+    if (!authorization || authorization.length !== 16) {
       return res.status(HTTP_UNAUTHORIZED).json({ message });
-    } 
-    if (authorization.length !== 16) {
-      return res.status(HTTP_UNAUTHORIZED).json({ message });
-    } 
-    if (!id) {
-      return res.status(HTTP_NOT_FOUND_STATUS).json({ message });
     }
     return res.status(HTTP_BAD_REQUEST).json({ message });
   }
-  const talkers = await talkersList();
-  const index = talkers.findIndex((element) => element.id === Number(id));
-  talkers[index] = { id: Number(id), name, age, talk: watchedAt, rate };
-  await fs.writeFile(route, JSON.stringify(talkers));
-  return res.status(HTTP_OK_STATUS).json(talkers[index]);
+  const retorno = await findByIndex({ id, name, age, watchedAt, rate });
+  if (retorno === -1) {
+    return res.status(HTTP_NOT_FOUND_STATUS).json({ message: 'Pessoa palestrante não encontrada' });
+  }
+  return res.status(HTTP_OK_STATUS).json(retorno);
 });
 
 // REQUISITO 07 - só rascunho 
