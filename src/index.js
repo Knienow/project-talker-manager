@@ -42,11 +42,13 @@ app.listen(PORT, () => {
   console.log('Online');
 });
 
+// REQUISITO 01
 app.get('/talker', async (req, res) => {
   const talkers = await talkersList();
   return res.status(HTTP_OK_STATUS).json(talkers);
 });
 
+// REQUISITO 02
 app.get('/talker/:id', async (req, res) => {
   const { id } = req.params;
   const talkers = await talkersList();
@@ -57,6 +59,7 @@ app.get('/talker/:id', async (req, res) => {
   return res.status(HTTP_OK_STATUS).json(findTalkerById);
 });
 
+// REQUISITOS 03 E 04
 app.post('/login', [
   body('email').notEmpty().withMessage('O campo "email" é obrigatório'),
   body('password').notEmpty().withMessage('O campo "password" é obrigatório'),
@@ -112,7 +115,7 @@ app.post('/talker', validators, async (req, res) => {
   return res.status(HTTP_CREATED).json(newTalker);
 });
 
-// REQUISITO 06 - só rascunho 
+// REQUISITO 06
 const findByIndex = async (data) => {
   const talkers = await talkersList();
   const index = talkers.findIndex((element) => Number(element.id) === Number(data.id));
