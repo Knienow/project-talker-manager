@@ -151,22 +151,23 @@ app.put('/talker/:id', validators, [
   return res.status(HTTP_OK_STATUS).json(retorno);
 });
 
-// REQUISITO 07 - só rascunho 
+// REQUISITO 07 
 app.delete('/talker/:id', [
   header('authorization').notEmpty().withMessage('Token não encontrado'),
   header('authorization').isLength({ min: 16, max: 16 }).withMessage('Token inválido'),
 ], async (req, res) => {
   const errors = validationResult(req);
+  const { id } = req.params;
+  const talkers = await talkersList();
+  const idTalker = talkers.filter((element) => Number(element.id) !== Number(id));
+  const updatedTalkers = JSON.stringify(idTalker, null, 2);
+  await fs.writeFile(route, updatedTalkers);
   if (!errors.isEmpty()) {
     const message = errors.errors[0].msg;
     const { authorization } = req.headers;
-    if (!authorization) {
-      return res.status(HTTP_UNAUTHORIZED).json({ message });
-    } 
-    if (authorization.length !== 16) {
+    if (!authorization || authorization.length !== 16) {
       return res.status(HTTP_UNAUTHORIZED).json({ message });
     }
-  const talkers = await talkersList();
-  res.status(HTTP_NO_CONTENT).json(talkers);
-  } 
+  }
+  return res.status(HTTP_NO_CONTENT).end();
 });
