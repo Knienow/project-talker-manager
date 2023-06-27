@@ -16,6 +16,23 @@ const HTTP_UNAUTHORIZED = 401;
 const HTTP_NO_CONTENT = 204;
 const PORT = process.env.PORT || '3001';
 
+const talkersList = async () => {
+  const data = await fs.readFile(route, 'utf-8');
+  const talkers = JSON.parse(data);
+  return talkers;
+};
+
+const isDateDDMMYYYY = (value) => {
+  const regex = /^\d{2}\/\d{2}\/\d{4}$/;
+  if (!regex.test(value)) {
+    throw new Error('O campo "watchedAt" deve ter o formato "dd/mm/aaaa"');
+  }
+  return true;
+};
+
+// Middleware para validar data de acordo com o formato dd/mm/yyyy
+const validateDateDDMMYYYY = (field) => body(field).custom(isDateDDMMYYYY);
+
 // não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
@@ -26,15 +43,13 @@ app.listen(PORT, () => {
 });
 
 app.get('/talker', async (req, res) => {
-  const data = await fs.readFile(route, 'utf-8');
-  const talkers = JSON.parse(data);
+  const talkers = await talkersList();
   return res.status(HTTP_OK_STATUS).json(talkers);
 });
 
 app.get('/talker/:id', async (req, res) => {
   const { id } = req.params;
-  const data = await fs.readFile(route, 'utf-8');
-  const talkers = JSON.parse(data);
+  const talkers = await talkersList();
   const findTalkerById = talkers.find((talker) => Number(talker.id) === Number(id)); 
   if (!findTalkerById) {
     res.status(HTTP_NOT_FOUND_STATUS).json({ message: 'Pessoa palestrante não encontrada' });
@@ -59,14 +74,7 @@ app.post('/login', [
 });
 
 // REQUISITO 05
-// req.body: o corpo da solicitação HTTP. Pode ser qualquer valor, porém objetos, arrays e outras primitivas JavaScript funcionam melhor.
-// req.cookies: o cabeçalho do Cookie analisado como um objeto do nome do cookie ao seu valor.
-// req.headers: os cabeçalhos enviados junto com a requisição HTTP.
-// req.params: um objeto do nome ao valor.
-// Em express.js, isso é analisado a partir do caminho da solicitação e combinado com o caminho de definição de rota, mas pode ser realmente
-// qualquer coisa significativa proveniente da solicitação HTTP.
-// req.query: a parte após o ? no caminho da solicitação HTTP, analisado como um objeto do nome do parâmetro de consulta para o valor.
-app.post('/talker', [
+const teste = [
   header('authorization').notEmpty().withMessage('Token não encontrado'),
   header('authorization').isLength({ min: 16, max: 16 })
   .withMessage('Token inválido'),
@@ -81,12 +89,12 @@ app.post('/talker', [
   body('talk.rate').notEmpty().withMessage('O campo "rate" é obrigatório'),
   body('talk.rate').isInt({ min: 1, max: 5 })
   .withMessage('O campo "rate" deve ser um número inteiro entre 1 e 5'),
-  body('talk.watchedAt').isDate()
-  .withMessage('O campo "watchedAt" deve ter o formato "dd/mm/aaaa"'),
-], async (req, res) => {
+  validateDateDDMMYYYY('talk.watchedAt'),
+];
+
+app.post('/talker', teste, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log(errors);
     const message = errors.errors[0].msg;
     const { authorization } = req.headers;
     if (!authorization) {
@@ -97,10 +105,10 @@ app.post('/talker', [
     }
     return res.status(HTTP_BAD_REQUEST).json({ message });
   }
-  const talkers = JSON.parse(fs.readFile(route, 'utf-8'));
+  const talkers = await talkersList();
   const newTalker = { ...req.body, id: talkers.length + 1 };
   talkers.push(newTalker);
-  await fs.writeFile(route, JSON.stringify(newTalker));
+  await fs.writeFile(route, JSON.stringify(talkers));
   return res.status(HTTP_CREATED).json(newTalker);
 });
 
@@ -124,13 +132,14 @@ app.put('/talker/:id', [
   .withMessage('O campo "rate" deve ser um número inteiro entre 1 e 5'),
   body('id').notEmpty().withMessage('Pessoa palestrante não encontrada'),
 ], async (req, res) => {
-  const data = fs.readFile(route, 'utf-8');
-  const talker = JSON.parse(data);
-  return res.status(HTTP_OK_STATUS).json(talker);
+  const talkers = await talkersList();
+  return res.status(HTTP_OK_STATUS).json(talkers);
 });
 
 // REQUISITO 07 - só rascunho 
 app.delete('/talker/:id', [
   header('authorization').notEmpty().withMessage('Token não encontrado'),
   header('authorization').isLength({ min: 16, max: 16 }).withMessage('Token inválido'),
-], async (req, res) => res.status(HTTP_NO_CONTENT).json());
+], async (req, res) => 
+// const talkers = await talkersList();
+res.status(HTTP_NO_CONTENT).json());
